@@ -1,17 +1,20 @@
 # tutorial-pdf-video-generator
 
-> Convierte tutoriales Markdown en PDFs profesionales con portada, índice auto-generado e imágenes embebidas.
+> Convierte tutoriales Markdown en PDFs profesionales y videos MP4 (144fps) con portada, índice auto-generado e imágenes embebidas.
 
 ---
 
 ## ✨ Features
 
 - 📄 **Markdown → PDF** con portada profesional (tema shadcn dark)
+- 🎥 **Markdown → MP4** video con slides animados a 144fps
 - 🖼️ **Imágenes embebidas** como base64 (PDF auto-contenido)
 - 📑 **Índice auto-generado** desde los encabezados H2/H3
 - 🎨 **Temas intercambiables** (incluye `shadcn-dark`, extensible)
 - ⚙️ **Configurable por proyecto** via `tutorial.config.js`
 - 🖨️ **Header y footer** personalizados con numeración de páginas
+- 🔄 **Transiciones** crossfade, fade-black o corte directo
+- 🎵 **Audio de fondo** opcional para videos
 
 ## 📦 Instalación
 
@@ -62,7 +65,14 @@ export default {
 ### 3. Generar PDF
 
 ```bash
+# Solo PDF (default)
 npx tutorial-pdf --config ./tutorial.config.js
+
+# Solo Video
+npx tutorial-pdf --config ./tutorial.config.js --video
+
+# Ambos
+npx tutorial-pdf --config ./tutorial.config.js --pdf --video
 ```
 
 ## ⚙️ Configuración Completa
@@ -87,6 +97,20 @@ npx tutorial-pdf --config ./tutorial.config.js
 | `format` | `string` | `'A4'` | Tamaño de papel |
 | `margins` | `object` | `{top:20,right:18,...}` | Márgenes en mm |
 | `lang` | `string` | `'es'` | Atributo `lang` del HTML |
+
+### Opciones de Video (`video.*`)
+
+| Opción | Tipo | Default | Descripción |
+|--------|------|---------|-------------|
+| `video.output` | `string` | `*.mp4` | Ruta del video generado |
+| `video.resolution` | `object` | `{width:1920,height:1080}` | Resolución del video |
+| `video.fps` | `number` | `144` | Frames por segundo |
+| `video.slideDuration` | `number` | `6` | Segundos por slide |
+| `video.coverDuration` | `number` | `8` | Segundos en portada |
+| `video.sectionTitleDuration` | `number` | `4` | Segundos en título de sección |
+| `video.transition` | `string` | `'crossfade'` | `crossfade` \| `fade-black` \| `cut` |
+| `video.transitionDuration` | `number` | `0.5` | Segundos de transición |
+| `video.backgroundMusic` | `string` | — | Ruta a `.mp3` de fondo |
 
 ## 🎨 Temas
 
@@ -123,6 +147,7 @@ export default {
 MI-PROYECTO-more/
 ├── TUTORIAL-MI-PROYECTO.md     ← Markdown del tutorial
 ├── TUTORIAL-MI-PROYECTO.pdf    ← PDF generado
+├── TUTORIAL-MI-PROYECTO.mp4    ← Video generado
 ├── tutorial.config.js          ← Config del generador
 ├── SS/                         ← Screenshots
 │   ├── logo.png
@@ -137,17 +162,13 @@ MI-PROYECTO-more/
 
 ```javascript
 import { exportTutorialToPDF } from 'tutorial-pdf-video-generator';
+import { exportTutorialToVideo } from 'tutorial-pdf-video-generator/video';
 
-await exportTutorialToPDF({
-  input: '/path/to/TUTORIAL.md',
-  output: '/path/to/TUTORIAL.pdf',
-  imagesDir: '/path/to/SS',
-  cover: {
-    title: 'Mi Tutorial',
-    version: '1.0',
-  },
-  theme: 'shadcn-dark',
-});
+// Generar PDF
+await exportTutorialToPDF(config);
+
+// Generar Video
+await exportTutorialToVideo(config);
 ```
 
 ## 📘 Guía de Metodología

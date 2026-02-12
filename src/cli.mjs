@@ -2,14 +2,15 @@
 /**
  * ============================================================
  *  CLI — tutorial-pdf-video-generator
- *  Generate professional PDFs from Markdown tutorials
+ *  Generate professional PDFs and videos from Markdown tutorials
  * ============================================================
  *
  *  Usage:
- *    npx tutorial-pdf [--config ./tutorial.config.js]
+ *    npx tutorial-pdf [--config ./tutorial.config.js] [--pdf] [--video]
  *
  *  If no --config is provided, it looks for tutorial.config.js
  *  in the current working directory.
+ *  If neither --pdf nor --video is specified, defaults to --pdf.
  * ============================================================
  */
 
@@ -17,16 +18,23 @@ import { resolve, dirname } from 'path';
 import { existsSync } from 'fs';
 import { pathToFileURL } from 'url';
 import { exportTutorialToPDF } from './export-pdf.mjs';
+import { exportTutorialToVideo } from './export-video.mjs';
 
 // ─── Parse CLI args ────────────────────────────────────────────
 function parseArgs() {
   const args = process.argv.slice(2);
   let configPath = null;
+  let doPdf = false;
+  let doVideo = false;
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--config' && args[i + 1]) {
       configPath = resolve(args[i + 1]);
       i++;
+    } else if (args[i] === '--pdf') {
+      doPdf = true;
+    } else if (args[i] === '--video') {
+      doVideo = true;
     } else if (args[i] === '--help' || args[i] === '-h') {
       printHelp();
       process.exit(0);
@@ -47,7 +55,12 @@ function parseArgs() {
     configPath = resolve(process.cwd(), 'tutorial.config.js');
   }
 
-  return { configPath };
+  // If neither specified, default to PDF only
+  if (!doPdf && !doVideo) {
+    doPdf = true;
+  }
+
+  return { configPath, doPdf, doVideo };
 }
 
 function printHelp() {
@@ -55,24 +68,28 @@ function printHelp() {
   tutorial-pdf-video-generator
   ────────────────────────────────────
 
-  Generate professional PDFs from Markdown tutorials.
+  Generate professional PDFs and videos from Markdown tutorials.
 
   Usage:
     npx tutorial-pdf [options]
 
   Options:
     --config <path>   Path to tutorial.config.js (default: ./tutorial.config.js)
+    --pdf             Generate PDF (default if no flag specified)
+    --video           Generate MP4 video
     --help, -h        Show this help
     --version, -v     Show version
 
-  Example:
-    npx tutorial-pdf --config ./docs/tutorial.config.js
+  Examples:
+    npx tutorial-pdf --config ./tutorial.config.js
+    npx tutorial-pdf --config ./tutorial.config.js --video
+    npx tutorial-pdf --config ./tutorial.config.js --pdf --video
   `);
 }
 
 // ─── Main ──────────────────────────────────────────────────────
 async function main() {
-  const { configPath } = parseArgs();
+  const { configPath, doPdf, doVideo } = parseArgs();
 
   if (!existsSync(configPath)) {
     console.error(`\n  ❌ Config file not found: ${configPath}`);
@@ -100,7 +117,27 @@ async function main() {
     },
   };
 
-  await exportTutorialToPDF(resolvedConfig);
+  // Resolve video paths
+  if (config.video) {
+    resolvedConfig.video = {
+      ...config.video,
+      output: config.video.output
+        ? resolve(configDir, config.video.output)
+        : resolvedConfig.output.replace(/\.pdf$/i, '.mp4'),
+    };
+    if (config.video.backgroundMusic) {
+      resolvedConfig.video.backgroundMusic = resolve(configDir, config.video.backgroundMusic);
+    }
+  }
+
+  // Execute requested exports
+  if (doPdf) {
+    await exportTutorialToPDF(resolvedConfig);
+  }
+
+  if (doVideo) {
+    await exportTutorialToVideo(resolvedConfig);
+  }
 }
 
 main()

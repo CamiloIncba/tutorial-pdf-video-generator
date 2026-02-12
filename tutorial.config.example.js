@@ -75,4 +75,40 @@ export default {
 
   /** HTML lang attribute */
   lang: 'es',
+
+  // ─── Video ────────────────────────────────────────────────────
+  video: {
+    /** Output path for the MP4 (relative to this config file) */
+    output: './TUTORIAL-MY-PROJECT.mp4',
+
+    /** Video resolution */
+    resolution: { width: 1920, height: 1080 },
+
+    /** Frames per second */
+    fps: 144,
+
+    /** Default seconds per slide */
+    slideDuration: 6,
+
+    /** Cover slide duration in seconds */
+    coverDuration: 8,
+
+    /** Section title slide duration in seconds */
+    sectionTitleDuration: 4,
+
+    /** TOC slide duration in seconds */
+    tocDuration: 6,
+
+    /** Closing slide duration in seconds */
+    closingDuration: 6,
+
+    /** Transition type: 'crossfade' | 'fade-black' | 'cut' */
+    transition: 'crossfade',
+
+    /** Transition duration in seconds */
+    transitionDuration: 0.5,
+
+    /** Path to background music file (optional) */
+    // backgroundMusic: './assets/bg-music.mp3',
+  },
 };

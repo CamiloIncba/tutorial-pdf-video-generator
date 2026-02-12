@@ -1,7 +1,7 @@
 {
   "name": "tutorial-pdf-video-generator",
-  "version": "1.0.0",
-  "description": "Generate professional PDF tutorials from Markdown with screenshots. Shadcn dark cover, auto TOC, base64-embedded images.",
+  "version": "2.0.0",
+  "description": "Generate professional PDF and MP4 video tutorials from Markdown. Shadcn dark cover, auto TOC, 144fps video, base64-embedded images.",
   "type": "module",
   "bin": {
     "tutorial-pdf": "./src/cli.mjs"
@@ -9,21 +9,27 @@
   "main": "./src/export-pdf.mjs",
   "exports": {
     ".": "./src/export-pdf.mjs",
+    "./video": "./src/export-video.mjs",
     "./themes/*": "./src/themes/*"
   },
   "scripts": {
     "generate": "node src/cli.mjs",
+    "generate:video": "node src/cli.mjs --video",
+    "generate:all": "node src/cli.mjs --pdf --video",
     "example": "node src/cli.mjs --config example/tutorial.config.js"
   },
   "keywords": [
     "tutorial",
     "pdf",
+    "video",
     "markdown",
     "generator",
     "documentation",
     "screenshots",
     "playwright",
-    "shadcn"
+    "ffmpeg",
+    "shadcn",
+    "mp4"
   ],
   "author": "CamiloIncba",
   "license": "MIT",
@@ -32,6 +38,8 @@
     "url": "https://github.com/CamiloIncba/tutorial-pdf-video-generator.git"
   },
   "dependencies": {
+    "ffmpeg-static": "^5.2.0",
+    "fluent-ffmpeg": "^2.1.3",
     "marked": "^17.0.0",
     "playwright": "^1.58.0"
   },

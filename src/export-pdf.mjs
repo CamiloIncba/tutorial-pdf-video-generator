@@ -17,7 +17,7 @@
 import { chromium } from 'playwright';
 import { readFileSync, existsSync, statSync } from 'fs';
 import { join, resolve, dirname, extname } from 'path';
-import { fileURLToPath } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 import { marked } from 'marked';
 
 // ─── Load theme ────────────────────────────────────────────────
@@ -27,7 +27,7 @@ async function loadThemeCSS(theme) {
     if (theme.endsWith('.css')) {
       return readFileSync(resolve(theme), 'utf8');
     }
-    const mod = await import(resolve(theme));
+    const mod = await import(pathToFileURL(resolve(theme)).href);
     return mod.default || mod.CSS;
   }
 
@@ -39,11 +39,11 @@ async function loadThemeCSS(theme) {
   if (!existsSync(themePath)) {
     console.warn(`  WARN: Theme "${themeName}" not found, using shadcn-dark`);
     const fallback = join(__dirname, 'themes', 'shadcn-dark.mjs');
-    const mod = await import(fallback);
+    const mod = await import(pathToFileURL(fallback).href);
     return mod.default || mod.CSS;
   }
 
-  const mod = await import(themePath);
+  const mod = await import(pathToFileURL(themePath).href);
   return mod.default || mod.CSS;
 }
 

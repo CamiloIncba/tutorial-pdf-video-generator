@@ -15,10 +15,13 @@
  */
 
 import { resolve, dirname } from 'path';
-import { existsSync } from 'fs';
-import { pathToFileURL } from 'url';
+import { existsSync, readFileSync } from 'fs';
+import { pathToFileURL, fileURLToPath } from 'url';
 import { exportTutorialToPDF } from './export-pdf.mjs';
 import { exportTutorialToVideo } from './export-video.mjs';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // ─── Parse CLI args ────────────────────────────────────────────
 function parseArgs() {
@@ -40,10 +43,7 @@ function parseArgs() {
       process.exit(0);
     } else if (args[i] === '--version' || args[i] === '-v') {
       const pkg = JSON.parse(
-        (await import('fs')).readFileSync(
-          resolve(dirname(new URL(import.meta.url).pathname), '..', 'package.json'),
-          'utf8'
-        )
+        readFileSync(resolve(__dirname, '..', 'package.json'), 'utf8')
       );
       console.log(pkg.version);
       process.exit(0);
@@ -108,6 +108,7 @@ async function main() {
   const configDir = dirname(configPath);
   const resolvedConfig = {
     ...config,
+    _configPath: configPath,
     input: resolve(configDir, config.input),
     output: resolve(configDir, config.output),
     imagesDir: resolve(configDir, config.imagesDir || './SS'),

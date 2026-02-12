@@ -11,9 +11,9 @@
  */
 
 import { readFileSync, existsSync } from 'fs';
-import { extname } from 'path';
+import { extname, resolve } from 'path';
 import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 
 // ─── Load video theme CSS ──────────────────────────────────────
 async function loadVideoThemeCSS(theme) {
@@ -21,9 +21,9 @@ async function loadVideoThemeCSS(theme) {
 
   if (theme && (theme.endsWith('.css') || theme.endsWith('.mjs'))) {
     if (theme.endsWith('.css')) {
-      return readFileSync(theme, 'utf8');
+      return readFileSync(resolve(theme), 'utf8');
     }
-    const mod = await import(theme);
+    const mod = await import(pathToFileURL(resolve(theme)).href);
     return mod.default || mod.CSS;
   }
 
@@ -33,11 +33,11 @@ async function loadVideoThemeCSS(theme) {
   if (!existsSync(themePath)) {
     console.warn(`  WARN: Video theme "${themeName}" not found, using shadcn-dark-video`);
     const fallback = join(__dirname, 'themes', 'shadcn-dark-video.mjs');
-    const mod = await import(fallback);
+    const mod = await import(pathToFileURL(fallback).href);
     return mod.default || mod.CSS;
   }
 
-  const mod = await import(themePath);
+  const mod = await import(pathToFileURL(themePath).href);
   return mod.default || mod.CSS;
 }
 

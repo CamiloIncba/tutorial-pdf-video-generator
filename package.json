@@ -1,7 +1,7 @@
 {
-  "name": "tutorial-pdf-video-generator",
+  "name": "tutorializator-2049",
   "version": "2.0.0",
-  "description": "Generate professional PDF and MP4 video tutorials from Markdown. Shadcn dark cover, auto TOC, 144fps video, base64-embedded images.",
+  "description": "Tutorializator 2049 - Generate professional PDF and MP4 video tutorials from Markdown. Shadcn dark cover, auto TOC, 144fps video, base64-embedded images.",
   "type": "module",
   "bin": {
     "tutorial-pdf": "./src/cli.mjs"

@@ -1,4 +1,4 @@
-# tutorial-pdf-video-generator
+# Tutorializator 2049
 
 > Convierte tutoriales Markdown en PDFs profesionales y videos MP4 (144fps) con portada, índice auto-generado e imágenes embebidas.
 
@@ -20,10 +20,10 @@
 
 ```bash
 # Global
-npm install -g tutorial-pdf-video-generator
+npm install -g tutorializator-2049
 
 # O como dev dependency en tu proyecto
-npm install -D tutorial-pdf-video-generator
+npm install -D tutorializator-2049
 
 # Instalar navegadores de Playwright (primera vez)
 npx playwright install chromium

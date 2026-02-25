@@ -1,20 +1,23 @@
 # Tutorializator 2049
 
-> Convierte tutoriales Markdown en PDFs profesionales y videos MP4 (144fps) con portada, índice auto-generado e imágenes embebidas.
+> Sistema de documentación para proyectos INCBA. Genera SRS, planes de trabajo, tutoriales y exporta a PDF, DOCX y MP4.
 
 ---
 
 ## ✨ Features
 
-- 📄 **Markdown → PDF** con portada profesional (tema shadcn dark)
-- 🎥 **Markdown → MP4** video con slides animados a 144fps
-- 🖼️ **Imágenes embebidas** como base64 (PDF auto-contenido)
-- 📑 **Índice auto-generado** desde los encabezados H2/H3
-- 🎨 **Temas intercambiables** (incluye `shadcn-dark`, extensible)
-- ⚙️ **Configurable por proyecto** via `tutorial.config.js`
-- 🖨️ **Header y footer** personalizados con numeración de páginas
-- 🔄 **Transiciones** crossfade, fade-black o corte directo
-- 🎵 **Audio de fondo** opcional para videos
+### 📁 Project Documentation
+- **`init`** — Scaffolding de documentación para nuevos proyectos
+- **`sync`** — Tracking de progreso y estado de documentación
+- **Skills templates** — SRS, PLAN, CLAUDE, README, LOVABLE-PROMPT, ERASER-DSL
+
+### 📄 Export Capabilities
+- 📄 **Markdown → PDF** con portada profesional
+- 📝 **Markdown → DOCX** compatible con Word
+- 🎥 **Markdown → MP4** video con slides animados
+- 🖼️ **Imágenes embebidas** como base64
+- 📑 **Índice auto-generado** desde H2/H3
+- 🎨 **Temas intercambiables** (`shadcn-dark`, `presupuesto-norpan`)
 
 ## 📦 Instalación
 
@@ -22,7 +25,7 @@
 # Global
 npm install -g tutorializator-2049
 
-# O como dev dependency en tu proyecto
+# O como dev dependency
 npm install -D tutorializator-2049
 
 # Instalar navegadores de Playwright (primera vez)
@@ -31,86 +34,155 @@ npx playwright install chromium
 
 ## 🚀 Uso Rápido
 
-### 1. Crear configuración
-
-En la carpeta de tu proyecto (por ejemplo `MI-PROYECTO-more/`):
+### Inicializar nuevo proyecto
 
 ```bash
-# Copiar el ejemplo
-cp node_modules/tutorial-pdf-video-generator/tutorial.config.example.js ./tutorial.config.js
+# Interactivo
+npx tutorializator init
+
+# Con parámetros
+npx tutorializator init --project TC --client NOR-PAN
 ```
 
-### 2. Editar `tutorial.config.js`
+Esto crea:
+```
+TC-more/
+├── CLAUDE.md           ← Hub central de contexto
+├── SRS.md              ← Especificación de requisitos
+├── PLAN.md             ← Plan de trabajo
+├── LOVABLE-PROMPT.md   ← Prompts para mockups
+├── ERASER-DSL.md       ← DSL para diagramas
+├── TUTORIAL.md         ← Tutorial de usuario
+├── SS/                 ← Screenshots
+└── diagrams/           ← Diagramas exportados
+
+project.config.js       ← Configuración del proyecto
+```
+
+### Verificar documentación
+
+```bash
+# Verificar estado
+npx tutorializator sync
+
+# Solo check (sin modificar)
+npx tutorializator sync --check
+```
+
+### Exportar documentos
+
+```bash
+# PDF (default)
+npx tutorializator export --config ./tutorial.config.js
+
+# DOCX
+npx tutorializator export --config ./tutorial.config.js --docx
+
+# Video MP4
+npx tutorializator export --config ./tutorial.config.js --video
+
+# Todos los formatos
+npx tutorializator export --pdf --docx --video
+```
+
+## 📁 Estructura de Proyecto INCBA
+
+```
+C:/Proyectos/
+└── CLIENTE/                    # Carpeta del cliente
+    └── PROYECTO/               # Nombre del proyecto
+        ├── PROYECTO-backend/   # Backend (NestJS/Express)
+        ├── PROYECTO-frontend/  # Frontend (React + Vite)
+        ├── PROYECTO-more/      # Documentación ← Tutorializator
+        │   ├── CLAUDE.md
+        │   ├── SRS.md
+        │   ├── PLAN.md
+        │   ├── TUTORIAL.md
+        │   └── SS/
+        └── project.config.js   # Config de Tutorializator
+```
+
+## 📋 Skills Templates
+
+Los templates en `Skills/` guían la generación de documentos:
+
+| Template | Propósito |
+|----------|-----------|
+| `SRS_TEMPLATE.md` | Especificación de requisitos (IEEE 830) |
+| `PLAN_TEMPLATE.md` | Plan de trabajo con sprints |
+| `CLAUDE_TEMPLATE.md` | Hub central de contexto y logs |
+| `LOVABLE_PROMPT_TEMPLATE.md` | Prompts para mockups en lovable.dev |
+| `ERASER_DSL_TEMPLATE.md` | DSL para diagramas en eraser.io |
+| `README_TEMPLATE.md` | README técnico para repos |
+
+## ⚙️ Project Config
+
+El archivo `project.config.js` centraliza la configuración del proyecto:
 
 ```javascript
 export default {
-  input: './TUTORIAL-MI-PROYECTO.md',
-  output: './TUTORIAL-MI-PROYECTO.pdf',
-  imagesDir: './SS',
-
-  cover: {
-    logo: './SS/logo.png',
-    title: 'Tutorial de Uso\nMi Aplicación',
-    subtitle: 'Guía completa del sistema',
-    version: '1.0 · Enero 2026',
-    classification: 'Uso interno',
-    footer: 'Mi Empresa S.A.',
+  project: {
+    code: 'TC',
+    name: 'Sistema de Cambio de Divisas',
   },
-
-  header: 'Mi Empresa S.A. · Mi Aplicación',
-  theme: 'shadcn-dark',
+  client: {
+    name: 'NOR-PAN S.R.L.',
+    folder: 'NOR-PAN',
+  },
+  team: {
+    pm: 'Felipe Rebolledo',
+    developer: 'Camilo Acencio',
+  },
+  progress: {
+    requirements: [
+      { code: 'RF-001', name: 'Autenticación', progress: 100 },
+      { code: 'RF-002', name: 'CRUD Clientes', progress: 80 },
+    ],
+  },
 };
 ```
 
-### 3. Generar PDF
+Ver `project.config.example.js` para todas las opciones disponibles.
 
-```bash
-# Solo PDF (default)
-npx tutorial-pdf --config ./tutorial.config.js
+## 📄 Export Config (tutorial.config.js)
 
-# Solo Video
-npx tutorial-pdf --config ./tutorial.config.js --video
+Para exportar documentos a PDF/DOCX/Video:
 
-# Ambos
-npx tutorial-pdf --config ./tutorial.config.js --pdf --video
+```javascript
+export default {
+  input: './TUTORIAL.md',
+  output: './TUTORIAL.pdf',
+  imagesDir: './SS',
+  
+  cover: {
+    logo: './SS/logo.png',
+    title: 'Tutorial de Uso',
+    subtitle: 'Guía completa',
+    version: '1.0',
+    footer: 'Mi Empresa',
+  },
+  
+  header: 'Mi Empresa · Mi Sistema',
+  theme: 'shadcn-dark',
+  
+  video: {
+    output: './TUTORIAL.mp4',
+    fps: 30,
+    slideDuration: 6,
+    transition: 'crossfade',
+  },
+};
 ```
 
-## ⚙️ Configuración Completa
+### Opciones principales
 
-| Opción | Tipo | Default | Descripción |
-|--------|------|---------|-------------|
-| `input` | `string` | — | Ruta al Markdown (relativa al config) |
-| `output` | `string` | — | Ruta del PDF generado |
-| `imagesDir` | `string` | `dirname(input)` | Carpeta de screenshots |
-| `cover.logo` | `string` | — | Ruta a imagen del logo |
-| `cover.logoText` | `string` | — | Texto alternativo si no hay logo |
-| `cover.title` | `string` | `'Tutorial'` | Título principal |
-| `cover.subtitle` | `string` | — | Descripción corta |
-| `cover.version` | `string` | — | Etiqueta de versión |
-| `cover.classification` | `string` | — | Nivel de clasificación |
-| `cover.footer` | `string` | — | Texto bajo la portada |
-| `cover.date` | `string` | Auto (mes+año) | Fecha explícita |
-| `cover.meta` | `object` | — | Filas extra `{label: value}` |
-| `header` | `string` | — | Texto en header de cada página |
-| `theme` | `string` | `'shadcn-dark'` | Tema built-in o ruta a `.mjs`/`.css` |
-| `tocTitle` | `string` | `'Índice de Contenidos'` | Título del TOC |
-| `format` | `string` | `'A4'` | Tamaño de papel |
-| `margins` | `object` | `{top:20,right:18,...}` | Márgenes en mm |
-| `lang` | `string` | `'es'` | Atributo `lang` del HTML |
-
-### Opciones de Video (`video.*`)
-
-| Opción | Tipo | Default | Descripción |
-|--------|------|---------|-------------|
-| `video.output` | `string` | `*.mp4` | Ruta del video generado |
-| `video.resolution` | `object` | `{width:1920,height:1080}` | Resolución del video |
-| `video.fps` | `number` | `144` | Frames por segundo |
-| `video.slideDuration` | `number` | `6` | Segundos por slide |
-| `video.coverDuration` | `number` | `8` | Segundos en portada |
-| `video.sectionTitleDuration` | `number` | `4` | Segundos en título de sección |
-| `video.transition` | `string` | `'crossfade'` | `crossfade` \| `fade-black` \| `cut` |
-| `video.transitionDuration` | `number` | `0.5` | Segundos de transición |
-| `video.backgroundMusic` | `string` | — | Ruta a `.mp3` de fondo |
+| Opción | Tipo | Descripción |
+|--------|------|-------------|
+| `input` | `string` | Ruta al Markdown |
+| `output` | `string` | Ruta del archivo generado |
+| `imagesDir` | `string` | Carpeta de screenshots |
+| `theme` | `string` | `shadcn-dark` o `presupuesto-norpan` |
+| `format` | `string` | `A4` o `Letter` |
 
 ## 🎨 Temas
 
@@ -121,6 +193,13 @@ npx tutorial-pdf --config ./tutorial.config.js --pdf --video
 - Código: fondo dark con fuente monospace
 - Tablas: headers oscuros, filas alternadas
 
+### Built-in: `presupuesto-norpan`
+
+- Portada: imagen de fondo full-bleed + overlay blanco con títulos Poppins
+- Cuerpo: Cambria 11pt (serif) para texto, Calibri Bold para headings
+- Formato: US Letter con márgenes de 1 pulgada
+- Ideal para: presupuestos, SRS, propuestas, documentos formales
+
 ### Tema personalizado
 
 ```javascript
@@ -128,52 +207,56 @@ npx tutorial-pdf --config ./tutorial.config.js --pdf --video
 const CSS = `
   body { font-family: Georgia, serif; }
   .cover { background: #1a1a2e; }
-  /* ... */
 `;
 export default CSS;
-```
-
-```javascript
-// tutorial.config.js
-export default {
-  theme: './mi-tema.mjs',
-  // ...
-};
-```
-
-## 📁 Estructura Recomendada
-
-```
-MI-PROYECTO-more/
-├── TUTORIAL-MI-PROYECTO.md     ← Markdown del tutorial
-├── TUTORIAL-MI-PROYECTO.pdf    ← PDF generado
-├── TUTORIAL-MI-PROYECTO.mp4    ← Video generado
-├── tutorial.config.js          ← Config del generador
-├── SS/                         ← Screenshots
-│   ├── logo.png
-│   ├── 01-login.png
-│   ├── 02-dashboard.png
-│   └── ...
-└── SCRIPT/                     ← Scripts específicos (opcional)
-    └── capture-tutorial.mjs
 ```
 
 ## 📖 Uso como Módulo
 
 ```javascript
-import { exportTutorialToPDF } from 'tutorial-pdf-video-generator';
-import { exportTutorialToVideo } from 'tutorial-pdf-video-generator/video';
+import { exportTutorialToPDF } from 'tutorializator-2049';
+import { exportTutorialToVideo } from 'tutorializator-2049/video';
+import { exportToDocx } from 'tutorializator-2049/docx';
 
-// Generar PDF
 await exportTutorialToPDF(config);
-
-// Generar Video
 await exportTutorialToVideo(config);
+await exportToDocx(config);
 ```
 
-## 📘 Guía de Metodología
+## 🔄 Progress Tracking
 
-Ver [Skills/TUTORIAL_GUIDE.md](Skills/TUTORIAL_GUIDE.md) para la guía completa de cómo estructurar tutoriales, convenciones de screenshots, estilo de escritura y checklist de publicación.
+El comando `sync` lee `CLAUDE.md` y detecta el progreso de los RFs:
+
+```bash
+npx tutorializator sync
+```
+
+Output:
+```
+📊 Documentation Status Report
+
+Documents:
+  ✅ CLAUDE.md            Complete
+  ✅ SRS.md               Complete
+  ⚠️ PLAN.md              Template
+  ⬜ TUTORIAL.md          Not created
+
+RF Progress:
+  RF-001 Autenticación      ██████████ 100%
+  RF-002 CRUD Clientes      ████████░░  80%
+  RF-003 Dashboard          ░░░░░░░░░░   0%
+
+  Overall: ████████░░ 60%
+```
+
+Cuando todos los RFs llegan al 100%, se muestra:
+```
+🎉 ALL RFs COMPLETE! Ready for release.
+```
+
+## 📘 Documentation Guide
+
+Ver [Skills/TUTORIAL_GUIDE.md](Skills/TUTORIAL_GUIDE.md) para la guía completa de cómo estructurar tutoriales.
 
 ## 📄 Licencia
 

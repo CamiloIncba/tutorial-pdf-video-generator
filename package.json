@@ -1,22 +1,26 @@
 {
   "name": "tutorializator-2049",
-  "version": "2.0.0",
-  "description": "Tutorializator 2049 - Generate professional PDF and MP4 video tutorials from Markdown. Shadcn dark cover, auto TOC, 144fps video, base64-embedded images.",
+  "version": "2.1.0",
+  "description": "Tutorializator 2049 - Generate project documentation, PDFs, DOCX and MP4 videos from Markdown. Project scaffolding, progress tracking, SRS templates.",
   "type": "module",
   "bin": {
+    "tutorializator": "./src/cli.mjs",
     "tutorial-pdf": "./src/cli.mjs"
   },
   "main": "./src/export-pdf.mjs",
   "exports": {
     ".": "./src/export-pdf.mjs",
     "./video": "./src/export-video.mjs",
+    "./docx": "./src/export-docx.mjs",
     "./themes/*": "./src/themes/*"
   },
   "scripts": {
-    "generate": "node src/cli.mjs",
-    "generate:video": "node src/cli.mjs --video",
-    "generate:all": "node src/cli.mjs --pdf --video",
-    "example": "node src/cli.mjs --config example/tutorial.config.js"
+    "init": "node src/init-project.mjs",
+    "sync": "node src/sync-docs.mjs",
+    "generate": "node src/cli.mjs export",
+    "generate:video": "node src/cli.mjs export --video",
+    "generate:all": "node src/cli.mjs export --pdf --video --docx",
+    "example": "node src/cli.mjs export --config example/tutorial.config.js"
   },
   "keywords": [
     "tutorial",
@@ -38,6 +42,7 @@
     "url": "https://github.com/CamiloIncba/tutorial-pdf-video-generator.git"
   },
   "dependencies": {
+    "docx": "^9.5.3",
     "ffmpeg-static": "^5.2.0",
     "fluent-ffmpeg": "^2.1.3",
     "marked": "^17.0.0",

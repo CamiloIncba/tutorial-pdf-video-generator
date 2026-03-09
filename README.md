@@ -77,6 +77,8 @@
 - ✅ SKIP_AUTH para desarrollo local sin Auth0
 - ✅ 3 temas (light, dark, dusk) con CSS variables
 - ✅ Variables de template (`{{PROYECTO}}`, `{{CLIENTE}}`, etc.) reemplazadas automáticamente
+- ✅ MongoDB Atlas automático con `--atlas` (proyecto + cluster M10 + user + .env)
+- ✅ Auth0 automático con `--auth0` (SPA app + API + M2M + roles + .env)
 
 ---
 
@@ -193,6 +195,67 @@ TC-more/                        ← Documentación (siempre se crea)
 | `--port-backend` | `3001` | Puerto del backend Express |
 | `--port-frontend` | `5174` | Puerto del frontend Vite |
 | `--db-name` | `{proyecto}_db` | Nombre de la base de datos MongoDB |
+| `--atlas` | — | Crear proyecto + cluster + user en MongoDB Atlas automáticamente |
+| `--atlas-org` | auto-detect | Atlas Organization ID |
+| `--atlas-provider` | `AWS` | Cloud provider: AWS, AZURE, GCP |
+| `--atlas-region` | `SA_EAST_1` | Región del cluster |
+| `--auth0` | — | Configurar Auth0: SPA app, API, M2M, roles |
+| `--auth0-domain` | auto-detect | Auth0 tenant domain |
+| `--auth0-audience` | `https://api.{project}.norpan.com` | Custom API audience |
+
+#### MongoDB Atlas automático (`--atlas`)
+
+Con `--atlas`, Replicant usa el [Atlas CLI](https://www.mongodb.com/docs/atlas/cli/current/) para crear toda la infraestructura de MongoDB:
+
+```bash
+# Prerequisitos (una sola vez)
+winget install MongoDB.MongoDBAtlasCLI
+atlas auth login
+
+# Scaffolding con Atlas
+npx replicant init --project TC --client NOR-PAN --full --atlas
+
+# Con región específica (ej: São Paulo)
+npx replicant init --project TC --client NOR-PAN --full --atlas --atlas-region SA_EAST_1
+```
+
+Esto crea automáticamente:
+1. **Proyecto** en Atlas (o reutiliza existente)
+2. **Cluster M10** (AWS São Paulo, 10GB — misma config que TC y APP-PAGOS)
+3. **Equipo**: apps@nor-pan.com (GROUP_OWNER) + benjamin@incba.com.ar (GROUP_READ_ONLY)
+4. **Usuario de BD** con password generado
+5. **Access list** abierto para dev (0.0.0.0/0)
+6. **Connection string** escrito en `.env` del backend
+
+#### Auth0 automático (`--auth0`)
+
+Con `--auth0`, Replicant usa el [Auth0 CLI](https://github.com/auth0/auth0-cli) para configurar un tenant previamente creado:
+
+```bash
+# Prerequisitos (una sola vez)
+# Descargar Auth0 CLI: https://github.com/auth0/auth0-cli/releases
+# Crear tenant manualmente en Auth0 Dashboard
+auth0 login --domain mi-proyecto.us.auth0.com
+
+# Scaffolding con Auth0
+npx replicant init --project TC --client NOR-PAN --full --auth0
+
+# Con Atlas + Auth0 juntos
+npx replicant init --project TC --client NOR-PAN --full --atlas --auth0
+
+# Con audience personalizado
+npx replicant init --project TC --client NOR-PAN --full --auth0 \\
+  --auth0-audience https://api.tc.norpan.com
+```
+
+Esto configura automáticamente:
+1. **SPA Application** → CLIENT_ID para el frontend
+2. **API / Resource Server** → AUDIENCE para JWT validation
+3. **M2M Application** → CLIENT_ID + SECRET para Management API
+4. **Roles**: admin, operador, lector (estándar NOR-PAN)
+5. **Archivos .env** actualizados en frontend y backend
+
+> **Paso manual requerido**: Autorizar la app M2M para la Management API en Auth0 Dashboard → APIs → Auth0 Management API → Machine to Machine Applications. Otorgar scopes: `read:users`, `create:users`, `delete:users`, `update:users`.
 
 #### Estándares incluidos
 

@@ -19,6 +19,8 @@ import { resolve, dirname, join, relative } from 'path';
 import { existsSync, mkdirSync, readFileSync, writeFileSync, copyFileSync, readdirSync, statSync } from 'fs';
 import { fileURLToPath } from 'url';
 import readline from 'readline';
+import { checkAtlasReady, setupAtlas } from './atlas-setup.mjs';
+import { checkAuth0Ready, setupAuth0 } from './auth0-setup.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -60,6 +62,13 @@ function parseArgs() {
   let portBackend = '3001';
   let portFrontend = '5173';
   let dbName = null;
+  let atlasMode = false;
+  let atlasOrgId = null;
+  let atlasProvider = 'AWS';
+  let atlasRegion = 'SA_EAST_1';
+  let auth0Mode = false;
+  let auth0Domain = null;
+  let auth0Audience = null;
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--project' && args[i + 1]) {
@@ -101,6 +110,26 @@ function parseArgs() {
     } else if (args[i] === '--db-name' && args[i + 1]) {
       dbName = args[i + 1];
       i++;
+    } else if (args[i] === '--atlas') {
+      atlasMode = true;
+    } else if (args[i] === '--atlas-org' && args[i + 1]) {
+      atlasOrgId = args[i + 1];
+      i++;
+    } else if (args[i] === '--atlas-provider' && args[i + 1]) {
+      atlasProvider = args[i + 1].toUpperCase();
+      i++;
+    } else if (args[i] === '--atlas-region' && args[i + 1]) {
+      atlasRegion = args[i + 1];
+      i++;
+    } else if (args[i] === '--auth0') {
+      auth0Mode = true;
+    } else if (args[i] === '--auth0-domain' && args[i + 1]) {
+      auth0Domain = args[i + 1];
+      auth0Mode = true;
+      i++;
+    } else if (args[i] === '--auth0-audience' && args[i + 1]) {
+      auth0Audience = args[i + 1];
+      i++;
     } else if (args[i] === '-y' || args[i] === '--yes') {
       nonInteractive = true;
     } else if (args[i] === '--help' || args[i] === '-h') {
@@ -112,7 +141,9 @@ function parseArgs() {
   return { 
     projectName, projectFullName, clientFolder, clientFullName, 
     description, pmName, devName, targetDir, nonInteractive,
-    fullMode, backendOnly, frontendOnly, portBackend, portFrontend, dbName
+    fullMode, backendOnly, frontendOnly, portBackend, portFrontend, dbName,
+    atlasMode, atlasOrgId, atlasProvider, atlasRegion,
+    auth0Mode, auth0Domain, auth0Audience
   };
 }
 
@@ -138,13 +169,23 @@ ${colors.cyan}Options:${colors.reset}
   --port-backend PORT   Backend port (default: 3001)
   --port-frontend PORT  Frontend port (default: 5173)
   --db-name NAME        MongoDB database name (default: project code lowercase)
+  --atlas               Create MongoDB Atlas project + cluster + user automatically
+  --atlas-org ID        Atlas organization ID (auto-detect if not provided)
+  --atlas-provider P    Cloud provider: AWS, AZURE, GCP (default: AWS)
+  --atlas-region R      Region (default: SA_EAST_1)
+  --auth0               Configure Auth0 tenant (SPA app, API, M2M, roles)
+  --auth0-domain DOMAIN Auth0 tenant domain (auto-detect if CLI authenticated)
+  --auth0-audience URL  Custom API audience (default: https://api.{project}.norpan.com)
   -y, --yes             Non-interactive mode (use defaults)
   --help, -h            Show this help
 
 ${colors.cyan}Examples:${colors.reset}
   npx replicant init --project TC --client NOR-PAN
   npx replicant init --project TC --client NOR-PAN --full
-  npx replicant init --project TC --client NOR-PAN --full --backend
+  npx replicant init --project TC --client NOR-PAN --full --atlas
+  npx replicant init --project TC --client NOR-PAN --full --atlas --atlas-region SA_EAST_1
+  npx replicant init --project TC --client NOR-PAN --full --auth0
+  npx replicant init --project TC --client NOR-PAN --full --atlas --auth0
   npx replicant init --project TC --client NOR-PAN --full -y
   npx replicant init  # Interactive mode
 `);
@@ -466,6 +507,60 @@ async function main() {
     });
   }
 
+  // ─── Atlas Mode: create MongoDB Atlas project + cluster ─────
+  let atlasResult = null;
+  if (args.atlasMode) {
+    const check = checkAtlasReady();
+    if (!check.ok) {
+      log.warn(check.message);
+      log.info('Saltando configuración de Atlas. Podés ejecutarlo después:');
+      log.info('  atlas auth login && node src/atlas-setup.mjs');
+    } else {
+      const backendDir = scaffoldResult?.doBackend
+        ? join(targetDir, `${projectCode}-backend`)
+        : null;
+
+      atlasResult = await setupAtlas({
+        projectName: `${info.client.folder}-${projectCode}`,
+        dbName: info.dbName,
+        orgId: args.atlasOrgId,
+        provider: args.atlasProvider,
+        region: args.atlasRegion,
+        backendDir,
+      });
+    }
+  }
+
+  // ─── Auth0 Mode: configure Auth0 tenant ─────────────────────
+  let auth0Result = null;
+  if (args.auth0Mode) {
+    const check = checkAuth0Ready();
+    if (!check.ok) {
+      log.warn(check.message);
+      log.info('Saltando configuración de Auth0. Podés ejecutarlo después:');
+      log.info('  auth0 login --domain <tenant>.us.auth0.com');
+    } else {
+      const backendDir = scaffoldResult?.doBackend
+        ? join(targetDir, `${projectCode}-backend`)
+        : null;
+      const frontendDir = scaffoldResult?.doFrontend
+        ? join(targetDir, `${projectCode}-frontend`)
+        : null;
+
+      auth0Result = await setupAuth0({
+        projectName: projectCode,
+        projectLower: info.dbName,
+        domain: args.auth0Domain,
+        audience: args.auth0Audience,
+        portFrontend: parseInt(info.ports?.frontend || '5173', 10),
+        portBackend: parseInt(info.ports?.backend || '3001', 10),
+        frontendDir,
+        backendDir,
+        tenantsList: check.tenants,
+      });
+    }
+  }
+
   // Summary
   log.title('✅ Project initialized successfully!');
   
@@ -538,8 +633,28 @@ ${colors.cyan}Next steps:${colors.reset}
       nextSteps += `
   ${scaffoldResult.doBackend ? '6' : '5'}. ${colors.bright}cd ${projectCode}-frontend${colors.reset} && npm install && npx shadcn@latest add button sonner tooltip && npm run dev`;
     }
-    nextSteps += `
+    if (!auth0Result?.success) {
+      nextSteps += `
   ${scaffoldResult.doBackend && scaffoldResult.doFrontend ? '7' : '6'}. Configure Auth0: update ${colors.bright}.env${colors.reset} files with your tenant credentials`;
+    }
+  }
+
+  if (atlasResult?.success) {
+    nextSteps += `
+  ${colors.green}✓ MongoDB Atlas ya configurado${colors.reset} — MONGODB_URI en .env`;
+  } else if (args.atlasMode && !atlasResult?.success) {
+    nextSteps += `
+  ${colors.yellow}⚠ Configurar Atlas manualmente o reintentar:${colors.reset} atlas auth login`;
+  }
+
+  if (auth0Result?.success) {
+    nextSteps += `
+  ${colors.green}✓ Auth0 ya configurado${colors.reset} — credenciales en .env (${auth0Result.domain})`;
+    nextSteps += `
+  ${colors.yellow}⚠ Autorizar M2M app para Management API en Auth0 Dashboard${colors.reset}`;
+  } else if (args.auth0Mode && !auth0Result?.success) {
+    nextSteps += `
+  ${colors.yellow}⚠ Configurar Auth0 manualmente o reintentar:${colors.reset} auth0 login --domain <tenant>.us.auth0.com`;
   }
 
   console.log(nextSteps);
